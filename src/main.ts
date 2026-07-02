@@ -66,4 +66,47 @@ markOccupiedSeats(cinemaSeats, [
 
 printCinemaRoom(cinemaSeats);
 
+type SeatCountSummary = {
+  occupied: number;
+  available: number;
+};
+
+function reserveSeat(seats: SeatMatrix, row: number, column: number): string {
+  const message: string =
+    seats[row][column] === 1
+      ? `No se pudo reservar el asiento en la fila ${row + 1}, columna ${column + 1} porque ya esta ocupado.`
+      : `Reserva realizada con exito para el asiento en la fila ${row + 1}, columna ${column + 1}.`;
+
+  if (seats[row][column] === 0) {
+    seats[row][column] = 1;
+  }
+
+  console.log(message);
+
+  return message;
+}
+
+function countSeats(seats: SeatMatrix): SeatCountSummary {
+  let occupied: number = 0;
+  let available: number = 0;
+
+  for (let row = 0; row < seats.length; row++) {
+    for (let column = 0; column < seats[row].length; column++) {
+      if (seats[row][column] === 1) {
+        occupied++;
+      } else {
+        available++;
+      }
+    }
+  }
+
+  return { occupied, available };
+}
+
+reserveSeat(cinemaSeats, 2, 2);
+reserveSeat(cinemaSeats, 0, 1);
+
+console.log("Resumen de asientos:", countSeats(cinemaSeats));
+printCinemaRoom(cinemaSeats);
+
 export {};
