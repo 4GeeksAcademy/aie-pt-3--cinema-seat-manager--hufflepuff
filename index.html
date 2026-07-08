@@ -1,25 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World with Typescript</title>
+    <title>Gestor de Asientos de Cine Hufflepuff</title>
   </head>
-  <body class="min-h-screen bg-slate-100 text-slate-900">
-    <main class="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-6 p-6">
-      <h1 class="text-4xl font-bold tracking-tight">Hello World with Typescript</h1>
+  <body class="min-h-screen bg-gradient-to-b from-cyan-50 via-slate-100 to-cyan-100 text-slate-900">
+    <main class="mx-auto grid min-h-screen w-full max-w-5xl gap-8 p-6 md:p-10">
+      <header class="space-y-3">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-700">Sistema de reservas</p>
+        <h1 class="text-4xl font-black tracking-tight text-slate-900 md:text-5xl">Gestor de Asientos de Cine Hufflepuff</h1>
+        <p class="max-w-3xl text-sm text-slate-700 md:text-base">
+          Interfaz visual para reservar asientos y buscar pares contiguos libres en la misma fila.
+        </p>
+      </header>
 
-      <section class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <img
-          src="/rigo-baby.jpg"
-          alt="Hello Rigo"
-          class="h-64 w-full bg-slate-50 object-contain p-2"
-        />
-        <div class="p-5">
-          <h2 class="text-xl font-semibold text-slate-900">Hello Rigo</h2>
-          <p id="app" class="mt-2 text-sm text-slate-600"></p>
-        </div>
-      </section>
+      <div id="app" class="w-full"></div>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
