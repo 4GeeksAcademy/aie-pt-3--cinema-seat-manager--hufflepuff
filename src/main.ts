@@ -1,25 +1,16 @@
 type SeatMatrix = number[][];
 
-type SeatCountSummary = {
-  occupied: number;
-  available: number;
-};
+type SeatCountSummary = [occupied: number, available: number];
 
-type SeatPosition = {
-  row: number;
-  column: number;
-};
+type SeatPosition = [row: number, column: number];
 
-type ReservationResult = {
-  success: boolean;
-  message: string;
-};
+type ReservationResult = [success: boolean, message: string];
 
-type ContiguousPairResult = {
-  found: boolean;
-  message: string;
-  pair: [SeatPosition, SeatPosition] | null;
-};
+type ContiguousPairResult = [
+  found: boolean,
+  message: string,
+  pair: [SeatPosition, SeatPosition] | null,
+];
 
 type ScenarioName = "empty" | "partial" | "almostFullSingles" | "full";
 
@@ -85,20 +76,20 @@ function reserveSeat(seats: SeatMatrix, row: number, column: number): Reservatio
   if (!isValidSeatPosition(seats, row, column)) {
     const message = `No se pudo reservar: la posicion fila ${row + 1}, columna ${column + 1} no existe.`;
     console.log(message);
-    return { success: false, message };
+    return [false, message];
   }
 
   if (seats[row][column] === 1) {
     const message = `No se pudo reservar el asiento en la fila ${row + 1}, columna ${column + 1} porque ya esta ocupado.`;
     console.log(message);
-    return { success: false, message };
+    return [false, message];
   }
 
   seats[row][column] = 1;
   const message = `Reserva confirmada para el asiento en la fila ${row + 1}, columna ${column + 1}.`;
   console.log(message);
 
-  return { success: true, message };
+  return [true, message];
 }
 
 // Cuenta asientos ocupados y disponibles en toda la sala.
@@ -116,7 +107,7 @@ function countSeats(seats: SeatMatrix): SeatCountSummary {
     }
   }
 
-  return { occupied, available };
+  return [occupied, available];
 }
 
 // Busca el primer par horizontal de asientos contiguos libres y retorna su posicion.
@@ -128,21 +119,21 @@ function findFirstContiguousPair(seats: SeatMatrix): ContiguousPairResult {
           `Se encontraron asientos contiguos en fila ${row + 1}, columnas ${column + 1} y ${column + 2}.`;
         console.log(message);
 
-        return {
-          found: true,
+        return [
+          true,
           message,
-          pair: [
-            { row, column },
-            { row, column: column + 1 },
+          [
+            [row, column],
+            [row, column + 1],
           ],
-        };
+        ];
       }
     }
   }
 
   const message = "No hay pares de asientos contiguos disponibles en esta sala.";
   console.log(message);
-  return { found: false, message, pair: null };
+  return [false, message, null];
 }
 
 // Genera una sala preconfigurada para probar diferentes escenarios.
@@ -185,16 +176,17 @@ function runScenarioInConsole(title: string, seats: SeatMatrix): void {
   console.log(`\n=========== ${title} ===========`);
   printCinemaRoom(seats);
 
-  const pairResult = findFirstContiguousPair(seats);
-  if (pairResult.pair) {
-    const [firstSeat] = pairResult.pair;
-    reserveSeat(seats, firstSeat.row, firstSeat.column);
-    reserveSeat(seats, firstSeat.row, firstSeat.column);
+  const [, , pair] = findFirstContiguousPair(seats);
+  if (pair) {
+    const [firstSeat] = pair;
+    reserveSeat(seats, firstSeat[0], firstSeat[1]);
+    reserveSeat(seats, firstSeat[0], firstSeat[1]);
   } else {
     reserveSeat(seats, 0, 0);
   }
 
-  console.log("Resumen de asientos:", countSeats(seats));
+  const [occupied, available] = countSeats(seats);
+  console.log(`Resumen de asientos -> Ocupados: ${occupied}, Libres: ${available}`);
 }
 
 // Corre las pruebas pedidas: sala vacia, parcial, casi llena y totalmente llena.
@@ -216,12 +208,23 @@ function initializeWebInterface(): void {
   }
   const appRoot = app;
 
-  const scenarioLabels: Record<ScenarioName, string> = {
-    empty: "Sala vacia",
-    partial: "Sala parcialmente ocupada",
-    almostFullSingles: "Casi llena con asientos sueltos",
-    full: "Sala llena",
-  };
+  const scenarioOptions: Array<[ScenarioName, string]> = [
+    ["empty", "Sala vacia"],
+    ["partial", "Sala parcialmente ocupada"],
+    ["almostFullSingles", "Casi llena con asientos sueltos"],
+    ["full", "Sala llena"],
+  ];
+
+  // Obtiene la etiqueta visible de un escenario a partir de su identificador.
+  function getScenarioLabel(scenario: ScenarioName): string {
+    for (const [key, label] of scenarioOptions) {
+      if (key === scenario) {
+        return label;
+      }
+    }
+
+    return "Escenario desconocido";
+  }
 
   let selectedScenario: ScenarioName = "partial";
   let seats = createScenarioMatrix(selectedScenario);
@@ -233,11 +236,11 @@ function initializeWebInterface(): void {
       return false;
     }
 
-    return highlightedPair.some((seat) => seat.row === row && seat.column === column);
+    return highlightedPair.some((seat) => seat[0] === row && seat[1] === column);
   }
 
   function render(): void {
-    const summary = countSeats(seats);
+    const [occupied, available] = countSeats(seats);
     const rows = seats.length;
     const columns = seats[0]?.length ?? 0;
 
@@ -253,7 +256,7 @@ function initializeWebInterface(): void {
           <label class="grid gap-1 text-sm font-medium text-slate-700">
             Escenario de prueba
             <select id="scenario-select" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200">
-              ${Object.entries(scenarioLabels)
+              ${scenarioOptions
                 .map(
                   ([key, label]) =>
                     `<option value="${key}" ${key === selectedScenario ? "selected" : ""}>${label}</option>`,
@@ -269,8 +272,8 @@ function initializeWebInterface(): void {
 
         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div class="mb-3 flex items-center justify-between text-sm text-slate-700">
-            <span>Libres: <strong>${summary.available}</strong></span>
-            <span>Ocupados: <strong>${summary.occupied}</strong></span>
+            <span>Libres: <strong>${available}</strong></span>
+            <span>Ocupados: <strong>${occupied}</strong></span>
           </div>
           <div class="mb-3 rounded-lg bg-slate-900 py-2 text-center text-xs font-bold uppercase tracking-[0.3em] text-slate-200">Pantalla</div>
           <div id="seat-grid" class="grid gap-2">
@@ -319,14 +322,14 @@ function initializeWebInterface(): void {
       selectedScenario = (event.target as HTMLSelectElement).value as ScenarioName;
       seats = createScenarioMatrix(selectedScenario);
       highlightedPair = null;
-      statusMessage = `Escenario cargado: ${scenarioLabels[selectedScenario]}.`;
+      statusMessage = `Escenario cargado: ${getScenarioLabel(selectedScenario)}.`;
       render();
     });
 
     findPairButton?.addEventListener("click", () => {
-      const result = findFirstContiguousPair(seats);
-      highlightedPair = result.pair;
-      statusMessage = result.message;
+      const [, message, pair] = findFirstContiguousPair(seats);
+      highlightedPair = pair;
+      statusMessage = message;
       render();
     });
 
@@ -335,7 +338,8 @@ function initializeWebInterface(): void {
         const row = Number(button.dataset.row);
         const column = Number(button.dataset.column);
         highlightedPair = null;
-        statusMessage = reserveSeat(seats, row, column).message;
+        const [, message] = reserveSeat(seats, row, column);
+        statusMessage = message;
         render();
       });
     }
